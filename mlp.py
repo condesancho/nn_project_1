@@ -1,4 +1,3 @@
-import sys
 import torch
 from torch import optim
 import torch.nn as nn
@@ -11,23 +10,26 @@ from mnist_dataset import MnistTest, MnistTrain
 
 # Configure device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(f'Running on: {device}')
 
-# Import data
-train_data = MnistTrain()
-test_data = MnistTest()
+
+# Import data and choose if you want to use PCA
+train_data = MnistTrain(pca=False)
+test_data = MnistTest(pca=False)
+
 
 # Initialize variables
-learning_rate = 0.001
+learning_rate = 0.01
 batch = 1000
-n_epochs = 20
-hidden_layers = 1
-hidden_size = [254]
+n_epochs = 50
+hidden_layers = 3
+hidden_size = [64, 64, 64]
 
 
 # Define the NN
 class MLP(nn.Module):
     # Init function
-    def __init__(self, input_size=784, hidden_layers=1, hidden_size=[254], activation='relu'):
+    def __init__(self, hidden_layers=1, hidden_size=[254], activation='relu'):
         super(MLP, self).__init__()
 
         self.depth = nn.Sequential()
@@ -37,6 +39,9 @@ class MLP(nn.Module):
             'relu': nn.ReLU(),
             'sigmoid': nn.Sigmoid()
         })
+
+        # The input on the first layer is the number of columns of the dataset
+        input_size = train_data.x.size(dim=1)
 
         # Iterate for the appropriate number of layers
         for i in range(hidden_layers):
@@ -60,14 +65,12 @@ class MLP(nn.Module):
 
 
 # Create the model and pass it to the device
-model = MLP(hidden_layers=hidden_layers, hidden_size=hidden_size).to(device)
-
-# print(model)
-# sys.exit()
+model = MLP(hidden_layers=hidden_layers, hidden_size=hidden_size,
+            activation='sigmoid').to(device)
 
 # Loss function and optimizer
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 # Create dataloaders
 train_loader = DataLoader(dataset=train_data, batch_size=batch,
@@ -83,9 +86,8 @@ train_losses = []
 test_acc = []
 train_acc = []
 
+
 # Training function
-
-
 def train(n_epochs):
 
     temp_loss = 0
@@ -116,15 +118,17 @@ def train(n_epochs):
     # Store the mean loss of the epoch
     train_loss = temp_loss / len(train_loader)
     train_losses.append(train_loss)
+
     # Store the accuracy of the train set
     acc = 100.0 * n_correct / n_samples
     train_acc.append(acc)
 
+    # Print the values
     print(f'Epoch: {epoch+1}, Loss: {train_loss:.4f} and Acc: {acc:.2f}')
 
 
 # Testing function
-def test(n_epochs):
+def test():
     with torch.no_grad():
         temp_loss = 0
         n_correct = 0
@@ -147,15 +151,20 @@ def test(n_epochs):
         # Store the mean loss of the epoch
         test_loss = temp_loss / len(train_loader)
         test_losses.append(test_loss)
+
         # Store the accuracy of the train set
         acc = 100.0 * n_correct / n_samples
         test_acc.append(acc)
-        print(f'Test Loss: {test_loss:.4f} and Test Acc: {acc:.2f}')
+
+        # Print the values
+        print(f'Test Loss: {test_loss:.4f} and Test Acc: {acc:.2f}\n')
 
 
+# Iterate for every epoch
 for epoch in range(n_epochs):
     train(epoch)
-    test(epoch)
+    test()
+
 
 # Plot accuracies
 plot1 = plt.figure(1)

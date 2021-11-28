@@ -10,8 +10,6 @@ from mnist import MNIST
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 
-# clf = PCA(331)
-
 
 class MnistTrain(Dataset):
 
@@ -22,7 +20,7 @@ class MnistTrain(Dataset):
         # Convert from list to numpy array
         self.x = np.array(self.x)
 
-        # If you want to use
+        # If you want to use PCA
         if pca:
             scaler = StandardScaler().fit_transform(self.x)
             # clf.fit(scaler)
