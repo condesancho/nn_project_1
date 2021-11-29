@@ -1,2 +1,3 @@
-# nn_project_1
+# Multilayer Perceptron Project
+
 First project for the Neural Networks - Deep Learning course

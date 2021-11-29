@@ -14,6 +14,7 @@ from sklearn.decomposition import PCA
 class MnistTrain(Dataset):
 
     def __init__(self, pca=False, num_components=331):
+        # Change './samples' to the path of the files
         mndata = MNIST('./samples')
         self.x, self.y = mndata.load_training()
 
@@ -44,6 +45,7 @@ class MnistTrain(Dataset):
 class MnistTest(Dataset):
 
     def __init__(self, pca=False, num_components=331):
+        # Change './samples' to the path of the files
         mndata = MNIST('./samples')
         self.x, self.y = mndata.load_testing()
 
